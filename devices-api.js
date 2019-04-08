@@ -73,16 +73,38 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
   })
 
   // Put
-  app.put('/devices/:post_id', (req,res) => {
-    // Send the response
-    res.status(200).json({
-      status: 'ok',
-      version: req.version,
-      auth: req.auth,
-      body: req.body,
-      query: req.query,
-      params: req.params
-    })
+  app.put('/devices/:device_id', (req,res) => {
+    console.log('device-id: ' + req.params.device_id);
+    const timestamp = new Date().getTime();
+    
+    const params = {
+      TableName: process.env.TABLE_NAME,
+      Key: {
+        'id': req.params.device_id,
+      },
+      ExpressionAttributeNames: {
+        '#devicename': 'name',
+        '#devicetype': 'type',
+      },
+      ExpressionAttributeValues: {
+        ':devicename': req.body.name,
+        ':devicetype': req.body.type,
+        ':updatedAt': timestamp,
+      },
+      UpdateExpression: 'SET #devicename = :devicename, #devicetype = :devicetype, updatedAt = :updatedAt',
+      ReturnValues: 'UPDATED_NEW',
+    };
+  
+    // update the device in the database
+    dynamoDb.update(params, (error, result) => {
+      // handle potential errors
+      if (error) {
+        console.error(error);
+        return res.status(501).send('Couldn\'t fetch the device.');
+      }
+
+      res.status(200).send(result.Attributes)
+    });
   })
 
 
