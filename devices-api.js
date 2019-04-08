@@ -89,7 +89,7 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
     const params = {
       TableName: process.env.TABLE_NAME,
       Key: {
-        'id': req.params.device_id,
+        id: req.params.device_id,
       },
       ExpressionAttributeNames: {
         '#devicename': 'name',
@@ -118,14 +118,24 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
 
   // Delete
-  app.delete('/devices/:post_id', (req,res) => {
-    // Send the response
-    res.status(200).json({
-      status: 'ok',
-      version: req.version,
-      auth: req.auth,
-      params: req.params
-    })
+  app.delete('/devices/:device_id', (req,res) => {
+    const params = {
+      TableName: process.env.TABLE_NAME,
+      Key: {
+        id: req.params.device_id,
+      },
+    };
+  
+    // delete the device from the database
+    dynamoDb.delete(params, (error) => {
+      // handle potential errors
+      if (error) {
+        console.error(error);
+        return res.status(501).send('Couldn\'t remove the device.');
+      }
+  
+      res.status(200).send({"result": "ok"})
+    });
   })
 
 
