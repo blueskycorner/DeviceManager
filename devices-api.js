@@ -34,15 +34,24 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 //----------------------------------------------------------------------------//
 
   // Get
-  app.get('/devices', (req,res) => {
-    // Send the response
-    res.status(200).json({
-      status: 'ok',
-      version: req.version,
-      auth: req.auth,
-      body: req.body,
-      query: req.query
-    })
+  app.get('/devices/:device_id', (req,res) => {
+    const params = {
+      TableName: process.env.TABLE_NAME,
+      Key: {
+        id: req.params.device_id,
+      },
+    };
+  
+    // fetch device from the database
+    dynamoDb.get(params, (error, result) => {
+      // handle potential errors
+      if (error) {
+        console.error(error);
+        return res.status(501).send('Couldn\'t fetch the device.');
+      }
+  
+      res.status(200).send(result.Item)
+    });
   })
 
   // Post
