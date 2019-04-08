@@ -1,0 +1,22 @@
+{
+  "name": "devicemanager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "devices-api.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blueskycorner/DeviceManager.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/blueskycorner/DeviceManager/issues"
+  },
+  "homepage": "https://github.com/blueskycorner/DeviceManager#readme",
+  "dependencies": {
+    "lambda-api": "^0.6.0"
+  }
+}
