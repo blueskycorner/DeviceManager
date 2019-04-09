@@ -1,0 +1,24 @@
+{
+    "permissions": [
+      {
+        "verb": "GET",
+        "path": "/v1/devices"
+      },
+      {
+        "verb": "GET",
+        "path": "/v1/devices/*"
+      },
+      {
+        "verb": "POST",
+        "path": "/v1/devices"
+      },
+      {
+        "verb": "PUT",
+        "path": "/v1/devices/*"
+      },
+      {
+        "verb": "DELETE",
+        "path": "/v1/devices/*"
+      }
+    ]
+  }

@@ -3,8 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "devices-api.js",
+  "config": {
+    "profile": "ben-main",
+    "devicesBucketName": "device-manager-backend-dev",
+    "userPermissionsPath": "permissions"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "deploy": "sls deploy",
+    "deploy-permissions": "aws s3 sync Permissions s3://%npm_package_config_devicesBucketName%/%npm_package_config_userPermissionsPath%/ --profile %npm_package_config_profile%"
   },
   "repository": {
     "type": "git",
@@ -17,6 +23,9 @@
   },
   "homepage": "https://github.com/blueskycorner/DeviceManager#readme",
   "dependencies": {
-    "lambda-api": "^0.6.0"
+    "jsonwebtoken": "^8.5.1",
+    "jwks-rsa": "^1.4.0",
+    "lambda-api": "^0.6.0",
+    "serverless-domain-manager": "^3.2.1"
   }
 }

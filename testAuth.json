@@ -1,0 +1,8 @@
+{
+    "ClientId": "o1irb2dus8sjr9ln7u4k9ooau",
+    "AuthFlow": "USER_PASSWORD_AUTH",
+    "AuthParameters": {
+        "USERNAME": "ehlers.benjamin@free.fr",
+        "PASSWORD": "azerty1"
+    }
+}
