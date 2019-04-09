@@ -382,7 +382,7 @@ exports.handler = (event, context, callback) => {
             .then((decoded)=> {
                 console.log('decoded:', decoded)
                 // TODO get a principal id and group/scope from the token
-                const principalId = 'user|a1b2c3d4';
+                const principalId = decoded.sub;
                 
                 // the example policy below denies access to all resources in the RestApi
                 const policy = new AuthPolicy('*', awsAccountId, apiOptions);

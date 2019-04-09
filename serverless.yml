@@ -39,6 +39,7 @@ custom:
   #   createRoute53Record: true
   devices-table-name: devices-${self:provider.stage}
   devices-bucket-name: ${self:service}-${self:provider.stage}
+  admin-email: benjamin.ehlers@hardis.fr
 
 functions:
   devices-api:
@@ -68,7 +69,7 @@ functions:
             - 'https://cognito-idp.'
             - ${self:provider.region}
             - '.amazonaws.com/'
-            - !Ref UserPool
+            - !Ref CognitoUserPoolUserPool
       JWKS_URI: 
         Fn::Join:
           - ''
@@ -76,10 +77,18 @@ functions:
             - 'https://cognito-idp.'
             - ${self:provider.region}
             - '.amazonaws.com/'
-            - !Ref UserPool
+            - !Ref CognitoUserPoolUserPool
             - '/.well-known/jwks.json'
       PERMISSION_BUCKET_NAME: ${self:custom.devices-bucket-name}
     role: DevicesAuthorizerRole
+  
+  post-confirmation:
+    name: ${self:service}-${self:provider.stage}-post-confirmation
+    handler: postConfirmation.addUserToGroup
+    events:
+      - cognitoUserPool:
+          pool: UserPool
+          trigger: PostConfirmation
 
 # CloudFormation resource templates
 resources:
@@ -104,7 +113,7 @@ resources:
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
 
-    UserPool:
+    CognitoUserPoolUserPool:
       Type: AWS::Cognito::UserPool
       Properties:
         AdminCreateUserConfig: 
@@ -119,6 +128,23 @@ resources:
             RequireNumbers: false
             RequireSymbols: false
             RequireUppercase: false
+
+    UserPoolGroupAdmin:
+      Type: AWS::Cognito::UserPoolGroup
+      Properties:
+        Description: Admin
+        GroupName: admin
+        Precedence: 0
+        UserPoolId: !Ref CognitoUserPoolUserPool
+
+    UserPoolGroupUser:
+      Type: AWS::Cognito::UserPoolGroup
+      Properties:
+        Description: User
+        GroupName: user
+        Precedence: 1
+        UserPoolId: !Ref CognitoUserPoolUserPool
+
     UserPoolUser:        
       Type: AWS::Cognito::UserPoolUser
       Properties:
@@ -126,9 +152,16 @@ resources:
           - EMAIL
         UserAttributes: 
           - Name: email
-            Value: benjamin.ehlers@hardis.fr
-        Username: benjamin.ehlers@hardis.fr
-        UserPoolId: !Ref UserPool
+            Value: ${self:custom.admin-email}
+        Username: ${self:custom.admin-email}
+        UserPoolId: !Ref CognitoUserPoolUserPool
+
+    # AdminUserToAdminGroup:  
+    #   Type: AWS::Cognito::UserPoolUserToGroupAttachment
+    #   Properties:
+    #     GroupName: !Ref UserPoolGroupAdmin
+    #     Username: !Ref UserPoolUser
+    #     UserPoolId: !Ref UserPool
 
     AppClient:
       Type: AWS::Cognito::UserPoolClient
@@ -137,7 +170,7 @@ resources:
           ExplicitAuthFlows:
             - USER_PASSWORD_AUTH
           GenerateSecret: false
-          UserPoolId: !Ref UserPool
+          UserPoolId: !Ref CognitoUserPoolUserPool
           
     DevicesAuthorizerRole:
       Type: AWS::IAM::Role
