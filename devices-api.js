@@ -9,7 +9,7 @@
 
 
 // Require and init API router module
-const app = require('lambda-api')({ version: 'v1.0', base: 'v1' })
+const app = require('lambda-api')({ version: 'v1.0', base: 'devices/v1' })
 const uuid = require('uuid');
 const AWS = require('aws-sdk'); // eslint-disable-line import/no-extraneous-dependencies
 
@@ -168,7 +168,7 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 // Main router handler
 //----------------------------------------------------------------------------//
 module.exports.router = (event, context, callback) => {
-
+  console.info(app.routes());
   // !!!IMPORTANT: Set this flag to false, otherwise the lambda function
   // won't quit until all DB connections are closed, which is not good
   // if you want to freeze and reuse these connections

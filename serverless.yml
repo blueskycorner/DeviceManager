@@ -28,18 +28,26 @@ provider:
         - dynamodb:DeleteItem
       Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.devices-table-name}"
 
-# plugins:
-#   - serverless-domain-manager
+plugins:
+  - aws-amplify-serverless-plugin
+  - serverless-domain-manager
 
 custom:
-  # customDomain:
-  #   domainName: 'geotracker.api.cloud-master-team.com' # Change this to your domain.
-  #   basePath: 'devices' # This will be prefixed to all routes
-  #   stage: ${self:provider.stage}
-  #   createRoute53Record: true
+  customDomain:
+    domainName: 'geotracker.api.cloud-master-team.com' # Change this to your domain.
+    certificateArn: 'arn:aws:acm:eu-west-1:813860980995:certificate/d097cff5-7e0b-4c03-932e-db88b052bded'
+    basePath: 'devices' # This will be prefixed to all routes
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+    endpointType: regional
   devices-table-name: devices-${self:provider.stage}
   devices-bucket-name: ${self:service}-${self:provider.stage}
   admin-email: benjamin.ehlers@hardis.fr
+  amplify:
+    - filename: ./aws-exports.js
+      type: javascript
+      appClient: AppClient
+      s3bucket: disabled
 
 functions:
   devices-api:
@@ -83,12 +91,14 @@ functions:
     role: DevicesAuthorizerRole
   
   post-confirmation:
+    DepensdOn: CognitoUserPoolUserPool
     name: ${self:service}-${self:provider.stage}-post-confirmation
     handler: postConfirmation.addUserToGroup
     events:
       - cognitoUserPool:
           pool: UserPool
           trigger: PostConfirmation
+    role: PostConfirmationRole
 
 # CloudFormation resource templates
 resources:
@@ -116,6 +126,8 @@ resources:
     CognitoUserPoolUserPool:
       Type: AWS::Cognito::UserPool
       Properties:
+        AutoVerifiedAttributes:
+          - email
         AdminCreateUserConfig: 
           AllowAdminCreateUserOnly: false
         UsernameAttributes: 
@@ -207,7 +219,49 @@ resources:
                     - s3:GetObject
                   Resource: 
                     - arn:aws:s3:::${self:custom.devices-bucket-name}/*
-
+          
+    PostConfirmationRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${self:provider.stage}-post-confirmation
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: ${self:service}-${self:provider.stage}-post-confirmation
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: 
+                    - 'Fn::Join':
+                      - ':'
+                      -
+                        - 'arn:aws:logs'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - 'log-group:/aws/lambda/*:*:*'
+                - Effect: Allow
+                  Action: # Gives permission to S3
+                    - cognito-idp:AdminAddUserToGroup
+                  Resource: 
+                    Fn::Join:
+                      - ''
+                      -
+                        - 'arn:aws:cognito-idp:'
+                        - ${self:provider.region}
+                        - ':'
+                        - !Ref AWS::AccountId
+                        - ':userpool/*'
 
 #    NewResource:
 #      Type: AWS::S3::Bucket
