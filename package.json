@@ -23,7 +23,6 @@
   },
   "homepage": "https://github.com/blueskycorner/DeviceManager#readme",
   "dependencies": {
-    "aws-amplify-serverless-plugin": "^1.4.1",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^1.4.0",
     "lambda-api": "^0.6.0"

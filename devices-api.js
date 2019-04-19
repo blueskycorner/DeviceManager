@@ -46,7 +46,7 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
         console.error(error);
         return res.status(501).send('Couldn\'t fetch the device.');
       }
-  
+      console.info("user id: " + req.requestContext.authorizer.userId)
       res.status(200).send(result.Items)
     });
   })
